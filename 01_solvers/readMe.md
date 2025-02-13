@@ -1,6 +1,6 @@
 This is md file describes details about referred files.
 
-**animationTool.py** "\n"
+**animationTool.py** \n
 It is a Python tool used for visualizing code executions. It was developed to create an animation in the Spyder environment by reading data from Excel files generated after running the (version name)_animation.cpp codes.
 
 **v1.cpp**
