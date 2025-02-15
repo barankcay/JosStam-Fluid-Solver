@@ -9,12 +9,12 @@ import time
 #     data = data.astype(float)  # Verileri float türüne dönüştür
 #     return data.values  # Pandas DataFrame'ini numpy array'e dönüştür
 
-max_steps = 100
+max_steps = 300
 
 
 # Set the color range constant
 MIN = 0
-MAX = 300
+MAX = 10
 
 for t in range(max_steps):
     filename = f'dens_t{t}.csv'

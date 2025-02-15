@@ -13,7 +13,7 @@
 
 using namespace std;
 
-const int N = 20; // The size of the matrix (excluding boundary)
+const int N = 50; // The size of the matrix (excluding boundary)
 
 const double length = 10;
 
@@ -22,8 +22,7 @@ double h = length / N;
 const double dt = 1;
 const double diff = 0.1;
 
-const double visc = 0.1;
-
+const double visc = 100000;
 vector<vector<double>> u(N + 2, vector<double>(N + 2));
 vector<vector<double>> u0(N, vector<double>(N));
 
@@ -147,7 +146,7 @@ void project(vector<vector<double>> &divergent, vector<vector<double>> &u, vecto
         }
     }
 
-    for (int k = 0; k < 20; k++)
+    for (int k = 0; k < 300; k++)
     {
         for (int i = 1; i < N + 1; i++)
         {
@@ -170,17 +169,17 @@ void project(vector<vector<double>> &divergent, vector<vector<double>> &u, vecto
 
 void density_step(vector<vector<double>> &dens, vector<vector<double>> &dens0, vector<vector<double>> &u, vector<vector<double>> &v, vector<vector<double>> &x, vector<vector<double>> &y)
 {
-    addSource(3, 5, 4, 6, dens, 300);
-    addSource(12, 15, 12, 15, dens, 300);
+    addSource(25, 35, 25, 35, dens, 300);
     SWAP(dens, dens0);
     diffuse(dens, dens0, diff);
     SWAP(dens, dens0);
     advect(dens, dens0, x, y, u, v);
+    addSource(25, 35, 25, 35, dens, 300);
 }
 
 void velocity_step(vector<vector<double>> &u, vector<vector<double>> &v, vector<vector<double>> &u0, vector<vector<double>> &v0, vector<vector<double>> &divergent, vector<vector<double>> &pressure, vector<vector<double>> &x, vector<vector<double>> &y)
 {
-    velocInitialize(0, 20, 5, 15, u, v, 0, 3);
+    velocInitialize(0, 50, 0, 50, u, v, 10, 10);
     SWAP(u, u0);
     diffuse(u, u0, visc);
     SWAP(v, v0);
@@ -190,8 +189,8 @@ void velocity_step(vector<vector<double>> &u, vector<vector<double>> &v, vector<
     SWAP(u, u0);
     SWAP(v, v0);
 
-    advect(u, u0, x, y, u0, v0);
-    advect(v, v0, x, y, u0, v0);
+    advect(u, u0, x, y, u, v);
+    advect(v, v0, x, y, u, v);
 
     project(divergent, u, v, pressure);
 }
@@ -231,16 +230,17 @@ int main()
 {
     createCoordinates(x, y);
 
-    for (int t = 0; t < 100; t = t + dt)
+    for (int t = 0; t < 300; t = t + dt)
     {
+
+        saveToFile(v, "dens_t" + to_string(t) + ".csv");
         velocity_step(u, v, u0, v0, divergent, pressure, x, y);
         density_step(dens, dens0, u, v, x, y);
-        saveToFile(dens, "dens_t" + to_string(t) + ".csv");
         // for (int i = 0; i <= N + 1; i++) // Include boundary cells (0 to N+1)
         // {
         //     for (int j = 0; j <= N + 1; j++) // Include boundary cells (0 to N+1)
         //     {
-        //         cout << dens0[i][j] << " ";
+        //         cout << u[i][j] << " ";
         //     }
         //     cout << "\n";
         // }
