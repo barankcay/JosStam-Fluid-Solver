@@ -168,7 +168,14 @@ void project(vector<vector<double>> &divergent, vector<vector<double>> &u, vecto
 
 void density_step(vector<vector<double>> &dens, vector<vector<double>> &dens0, vector<vector<double>> &u, vector<vector<double>> &v, vector<vector<double>> &x, vector<vector<double>> &y)
 {
-    addSource((N / 2) - 3, (N / 2) + 3, (N / 2) - 3, (N / 2) + 3, dens, 300);
+    // Four lines below are for adding source
+    int xStart = (N / 2) - 3;
+    int xEnd = (N / 2) + 3;
+    int yStart = (N / 2) - 3;
+    int yEnd = (N / 2) + 3;
+
+    double source = 300;
+    addSource(xStart, xEnd, yStart, yEnd, dens, source);
     SWAP(dens, dens0);
     diffuse(dens, dens0, diff);
     SWAP(dens, dens0);
@@ -178,7 +185,15 @@ void density_step(vector<vector<double>> &dens, vector<vector<double>> &dens0, v
 
 void velocity_step(vector<vector<double>> &u, vector<vector<double>> &v, vector<vector<double>> &u0, vector<vector<double>> &v0, vector<vector<double>> &divergent, vector<vector<double>> &pressure, vector<vector<double>> &x, vector<vector<double>> &y)
 {
-    velocInitialize(1, N + 1, 1, 2, u, v, 0, 2);
+    // Six lines below are for initializing the velocity field
+    int xStart = 1;
+    int xEnd = N + 1;
+    int yStart = 1;
+    int yEnd = 2;
+    double xVeloc = 0;
+    double yVeloc = 2;
+
+    velocInitialize(xStart, xEnd, yStart, yEnd, u, v, xVeloc, yVeloc);
     SWAP(u, u0);
     diffuse(u, u0, visc);
     SWAP(v, v0);
