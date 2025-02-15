@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
+
 # def read_csv(filename):
 #     # CSV dosyasını pandas ile oku, ';' ile ayırarak
 #     data = pd.read_csv(filename, header=None, delimiter=';')  # Noktalı virgülle ayır
