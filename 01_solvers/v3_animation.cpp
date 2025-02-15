@@ -22,7 +22,7 @@ double h = length / N;
 const double dt = 1;
 const double diff = 0.1;
 
-const double visc = 0.0000001;
+const double visc = 0;
 vector<vector<double>> u(N + 2, vector<double>(N + 2));
 vector<vector<double>> u0(N, vector<double>(N));
 
@@ -178,7 +178,7 @@ void density_step(vector<vector<double>> &dens, vector<vector<double>> &dens0, v
 
 void velocity_step(vector<vector<double>> &u, vector<vector<double>> &v, vector<vector<double>> &u0, vector<vector<double>> &v0, vector<vector<double>> &divergent, vector<vector<double>> &pressure, vector<vector<double>> &x, vector<vector<double>> &y)
 {
-
+    velocInitialize(1, N + 1, 1, 2, u, v, 0, 2);
     SWAP(u, u0);
     diffuse(u, u0, visc);
     SWAP(v, v0);
@@ -228,10 +228,10 @@ void saveToFile(const vector<vector<double>> &dens, const string &filename)
 int main()
 {
     createCoordinates(x, y);
-    velocInitialize(1, N + 1, 1, N + 1, u, v, 0.8, 0.8);
-    for (int t = 0; t < 100; t = t + dt)
+
+    for (int t = 0; t < 200; t = t + dt)
     {
-        saveToFile(v, "dens_t" + to_string(t + 1) + ".csv");
+        saveToFile(dens, "dens_t" + to_string(t) + ".csv");
         velocity_step(u, v, u0, v0, divergent, pressure, x, y);
         density_step(dens, dens0, u, v, x, y);
 
