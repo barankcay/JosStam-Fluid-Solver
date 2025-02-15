@@ -22,7 +22,7 @@ double h = length / N;
 const double dt = 1;
 const double diff = 0.1;
 
-const double visc = 100000;
+const double visc = 0.0000001;
 vector<vector<double>> u(N + 2, vector<double>(N + 2));
 vector<vector<double>> u0(N, vector<double>(N));
 
@@ -142,7 +142,6 @@ void project(vector<vector<double>> &divergent, vector<vector<double>> &u, vecto
         for (int j = 1; j < N + 1; j++)
         {
             divergent[i][j] = (u[i + 1][j] - u[i - 1][j] + v[i][j + 1] - v[i][j - 1]) / 2;
-            pressure[i][j] = 0;
         }
     }
 
@@ -161,25 +160,25 @@ void project(vector<vector<double>> &divergent, vector<vector<double>> &u, vecto
     {
         for (int j = 1; j < N + 1; j++)
         {
-            u[i][j] = (pressure[i + 1][j] - pressure[i - 1][j]) / 2;
-            v[i][j] = (pressure[i][j + 1] - pressure[i][j - 1]) / 2;
+            u[i][j] -= 0.5 * (pressure[i + 1][j] - pressure[i - 1][j]);
+            v[i][j] -= 0.5 * (pressure[i][j + 1] - pressure[i][j - 1]);
         }
     }
 }
 
 void density_step(vector<vector<double>> &dens, vector<vector<double>> &dens0, vector<vector<double>> &u, vector<vector<double>> &v, vector<vector<double>> &x, vector<vector<double>> &y)
 {
-    addSource(25, 35, 25, 35, dens, 300);
+    addSource((N / 2) - 3, (N / 2) + 3, (N / 2) - 3, (N / 2) + 3, dens, 300);
     SWAP(dens, dens0);
     diffuse(dens, dens0, diff);
     SWAP(dens, dens0);
     advect(dens, dens0, x, y, u, v);
-    addSource(25, 35, 25, 35, dens, 300);
+    addSource((N / 2) - 3, (N / 2) + 3, (N / 2) - 3, (N / 2) + 3, dens, 300);
 }
 
 void velocity_step(vector<vector<double>> &u, vector<vector<double>> &v, vector<vector<double>> &u0, vector<vector<double>> &v0, vector<vector<double>> &divergent, vector<vector<double>> &pressure, vector<vector<double>> &x, vector<vector<double>> &y)
 {
-    velocInitialize(0, 50, 0, 50, u, v, 10, 10);
+
     SWAP(u, u0);
     diffuse(u, u0, visc);
     SWAP(v, v0);
@@ -229,13 +228,13 @@ void saveToFile(const vector<vector<double>> &dens, const string &filename)
 int main()
 {
     createCoordinates(x, y);
-
-    for (int t = 0; t < 300; t = t + dt)
+    velocInitialize(1, N + 1, 1, N + 1, u, v, 0.8, 0.8);
+    for (int t = 0; t < 100; t = t + dt)
     {
-
-        saveToFile(v, "dens_t" + to_string(t) + ".csv");
+        saveToFile(v, "dens_t" + to_string(t + 1) + ".csv");
         velocity_step(u, v, u0, v0, divergent, pressure, x, y);
         density_step(dens, dens0, u, v, x, y);
+
         // for (int i = 0; i <= N + 1; i++) // Include boundary cells (0 to N+1)
         // {
         //     for (int j = 0; j <= N + 1; j++) // Include boundary cells (0 to N+1)
