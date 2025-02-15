@@ -102,7 +102,7 @@ void saveToFile(const vector<vector<double>> &dens, const string &filename)
 int main()
 {
 
-    for (int t = 0; t < 200; t = t + dt)
+    for (int t = 0; t < 100; t = t + dt)
     {
         addSource(dens);
 

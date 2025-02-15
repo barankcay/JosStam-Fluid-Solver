@@ -15,10 +15,10 @@ max_steps = 100
 
 # Set the color range constant
 MIN = 0
-MAX = 300
+MAX = 100
 
 for t in range(max_steps):
-    filename = f'dens_t{t}.csv'
+    filename = f'dens0_t{t}.csv'
     print(f"Processing time step: {t}")  # Debug mesajı
 
     plt.ion()
