@@ -22,7 +22,7 @@ double h = length / N;
 const double dt = 1;
 const double diff = 0.1;
 
-double a = diff * dt / (h * h);
+const double visc = 0.1;
 
 vector<vector<double>> u(N + 2, vector<double>(N + 2));
 vector<vector<double>> u0(N, vector<double>(N));
@@ -36,6 +36,9 @@ vector<vector<double>> dens0(N + 2, vector<double>(N + 2));
 vector<vector<double>> x(N + 2, vector<double>(N + 2));
 vector<vector<double>> y(N + 2, vector<double>(N + 2));
 
+vector<vector<double>> divergent(N + 2, vector<double>(N + 2));
+vector<vector<double>> pressure(N + 2, vector<double>(N + 2));
+
 void SWAP(vector<vector<double>> &dens, vector<vector<double>> &dens0)
 {
     vector<vector<double>> temp(N + 2, vector<double>(N + 2));
@@ -43,11 +46,11 @@ void SWAP(vector<vector<double>> &dens, vector<vector<double>> &dens0)
     dens0 = temp;
 }
 
-void velocInitialize(vector<vector<double>> &u, vector<vector<double>> &v, double uVeloc, double vVeloc)
+void velocInitialize(int xStart, int xEnd, int yStart, int yEnd, vector<vector<double>> &u, vector<vector<double>> &v, double uVeloc, double vVeloc)
 {
-    for (int i = 1; i < N + 1; i++)
+    for (int i = xStart; i < xEnd; i++)
     {
-        for (int j = 1; j < N + 1; j++)
+        for (int j = yStart; j < yEnd; j++)
         {
             u[i][j] = uVeloc;
             v[i][j] = vVeloc;
@@ -73,19 +76,20 @@ void createCoordinates(vector<vector<double>> &x, vector<vector<double>> &y)
         }
     }
 }
-void addSource(int xStart, int xEnd, int yStart, int yEnd, vector<vector<double>> &dens0, double source)
+void addSource(int xStart, int xEnd, int yStart, int yEnd, vector<vector<double>> &dens, double source)
 {
     for (int i = xStart; i < xEnd; i++)
     {
         for (int j = yStart; j < yEnd; j++)
         {
-            dens0[i][j] = source * dt;
+            dens[i][j] = source * dt;
         }
     }
 }
 
-void diffuse(vector<vector<double>> &dens, vector<vector<double>> &dens0)
+void diffuse(vector<vector<double>> &dens, vector<vector<double>> &dens0, double diff)
 {
+    double a = diff * dt / (h * h);
 
     for (int k = 0; k < 300; k++)
     {
@@ -132,6 +136,65 @@ void advect(vector<vector<double>> &dens, vector<vector<double>> &dens0, vector<
     }
 }
 
+void project(vector<vector<double>> &divergent, vector<vector<double>> &u, vector<vector<double>> &v, vector<vector<double>> &pressure)
+{
+    for (int i = 1; i < N + 1; i++)
+    {
+        for (int j = 1; j < N + 1; j++)
+        {
+            divergent[i][j] = (u[i + 1][j] - u[i - 1][j] + v[i][j + 1] - v[i][j - 1]) / 2;
+            pressure[i][j] = 0;
+        }
+    }
+
+    for (int k = 0; k < 20; k++)
+    {
+        for (int i = 1; i < N + 1; i++)
+        {
+            for (int j = 1; j < N + 1; j++)
+            {
+                pressure[i][j] = (pressure[i - 1][j] + pressure[i + 1][j] + pressure[i][j - 1] + pressure[i][j + 1] - divergent[i][j]) / 4;
+            }
+        }
+    }
+
+    for (int i = 1; i < N + 1; i++)
+    {
+        for (int j = 1; j < N + 1; j++)
+        {
+            u[i][j] = (pressure[i + 1][j] - pressure[i - 1][j]) / 2;
+            v[i][j] = (pressure[i][j + 1] - pressure[i][j - 1]) / 2;
+        }
+    }
+}
+
+void density_step(vector<vector<double>> &dens, vector<vector<double>> &dens0, vector<vector<double>> &u, vector<vector<double>> &v, vector<vector<double>> &x, vector<vector<double>> &y)
+{
+    addSource(3, 5, 4, 6, dens, 300);
+    addSource(12, 15, 12, 15, dens, 300);
+    SWAP(dens, dens0);
+    diffuse(dens, dens0, diff);
+    SWAP(dens, dens0);
+    advect(dens, dens0, x, y, u, v);
+}
+
+void velocity_step(vector<vector<double>> &u, vector<vector<double>> &v, vector<vector<double>> &u0, vector<vector<double>> &v0, vector<vector<double>> &divergent, vector<vector<double>> &pressure, vector<vector<double>> &x, vector<vector<double>> &y)
+{
+    velocInitialize(0, 20, 5, 15, u, v, 0, 3);
+    SWAP(u, u0);
+    diffuse(u, u0, visc);
+    SWAP(v, v0);
+    diffuse(v, v0, visc);
+
+    project(divergent, u, v, pressure);
+    SWAP(u, u0);
+    SWAP(v, v0);
+
+    advect(u, u0, x, y, u0, v0);
+    advect(v, v0, x, y, u0, v0);
+
+    project(divergent, u, v, pressure);
+}
 // Function to save dens0 to a file as a matrix in CSV format for Excel
 // Function to save dens0 to a file as a matrix in CSV format for Excel
 void saveToFile(const vector<vector<double>> &dens, const string &filename)
@@ -167,33 +230,26 @@ void saveToFile(const vector<vector<double>> &dens, const string &filename)
 int main()
 {
     createCoordinates(x, y);
-    velocInitialize(u, v, 0, 0.3);
-    addSource(0, 19, 0, 19, dens0, 100);
 
     for (int t = 0; t < 100; t = t + dt)
     {
+        velocity_step(u, v, u0, v0, divergent, pressure, x, y);
+        density_step(dens, dens0, u, v, x, y);
+        saveToFile(dens, "dens_t" + to_string(t) + ".csv");
+        // for (int i = 0; i <= N + 1; i++) // Include boundary cells (0 to N+1)
+        // {
+        //     for (int j = 0; j <= N + 1; j++) // Include boundary cells (0 to N+1)
+        //     {
+        //         cout << dens0[i][j] << " ";
+        //     }
+        //     cout << "\n";
+        // }
 
-        saveToFile(dens0, "dens0_t" + to_string(t) + ".csv");
-        // Print dens0 in the console for each timestep (optional)
-        for (int i = 0; i <= N + 1; i++) // Include boundary cells (0 to N+1)
-        {
-            for (int j = 0; j <= N + 1; j++) // Include boundary cells (0 to N+1)
-            {
-                cout << dens0[i][j] << " ";
-            }
-            cout << "\n";
-        }
-
-        diffuse(dens, dens0);
-        SWAP(dens, dens0);
-        advect(dens, dens0, x, y, u, v);
-        SWAP(dens, dens0);
-        cout << "\n";
-        cout << "\n";
+        // cout << "\n";
+        // cout << "\n";
 
         // Save the current dens0 to a file after each time step
     }
-    cout << a;
 
     return 0;
 }

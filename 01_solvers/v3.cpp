@@ -46,11 +46,11 @@ void SWAP(vector<vector<double>> &dens, vector<vector<double>> &dens0)
     dens0 = temp;
 }
 
-void velocInitialize(vector<vector<double>> &u, vector<vector<double>> &v, double uVeloc, double vVeloc)
+void velocInitialize(int xStart, int xEnd, int yStart, int yEnd, vector<vector<double>> &u, vector<vector<double>> &v, double uVeloc, double vVeloc)
 {
-    for (int i = 1; i < N + 1; i++)
+    for (int i = xStart; i < xEnd; i++)
     {
-        for (int j = 1; j < N + 1; j++)
+        for (int j = yStart; j < yEnd; j++)
         {
             u[i][j] = uVeloc;
             v[i][j] = vVeloc;
@@ -168,16 +168,40 @@ void project(vector<vector<double>> &divergent, vector<vector<double>> &u, vecto
     }
 }
 
+void density_step(vector<vector<double>> &dens, vector<vector<double>> &dens0, vector<vector<double>> &u, vector<vector<double>> &v, vector<vector<double>> &x, vector<vector<double>> &y)
+{
+    addSource(3, 5, 4, 6, dens, 100);
+    SWAP(dens, dens0);
+    diffuse(dens, dens0, diff);
+    SWAP(dens, dens0);
+    advect(dens, dens0, x, y, u, v);
+}
+
+void velocity_step(vector<vector<double>> &u, vector<vector<double>> &v, vector<vector<double>> &u0, vector<vector<double>> &v0, vector<vector<double>> &divergent, vector<vector<double>> &pressure, vector<vector<double>> &x, vector<vector<double>> &y)
+{
+    velocInitialize(0, 10, 3, 4, u, v, 0, 0.3);
+    SWAP(u, u0);
+    diffuse(u, u0, visc);
+    SWAP(v, v0);
+    diffuse(v, v0, visc);
+
+    project(divergent, u, v, pressure);
+    SWAP(u, u0);
+    SWAP(v, v0);
+
+    advect(u, u0, x, y, u0, v0);
+    advect(v, v0, x, y, u0, v0);
+
+    project(divergent, u, v, pressure);
+}
 int main()
 {
     createCoordinates(x, y);
-    velocInitialize(u, v, 0, 0.3);
 
     for (int t = 0; t < 100; t = t + dt)
     {
-        addSource(3, 5, 4, 6, dens, 100);
-        SWAP(dens, dens0);
-
+        velocity_step(u, v, u0, v0, divergent, pressure, x, y);
+        density_step(dens, dens0, u, v, x, y);
         for (int i = 0; i <= N + 1; i++) // Include boundary cells (0 to N+1)
         {
             for (int j = 0; j <= N + 1; j++) // Include boundary cells (0 to N+1)
@@ -187,10 +211,6 @@ int main()
             cout << "\n";
         }
 
-        diffuse(dens, dens0, diff);
-        SWAP(dens, dens0);
-        advect(dens, dens0, x, y, u, v);
-        SWAP(dens, dens0);
         cout << "\n";
         cout << "\n";
 
