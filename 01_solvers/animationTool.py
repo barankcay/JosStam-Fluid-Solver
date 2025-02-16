@@ -10,7 +10,7 @@ import time
 #     data = data.astype(float)  # Verileri float türüne dönüştür
 #     return data.values  # Pandas DataFrame'ini numpy array'e dönüştür
 
-max_steps = 100
+max_steps = 300
 
 
 # Set the color range constant
