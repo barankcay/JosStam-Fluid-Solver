@@ -15,8 +15,11 @@ It covers the density source addition, density diffusion, and density advection 
 **v2_animation.cpp**<br />
 It provides the necessary Excel files as output to generate the animation for the code v2.
 
-**vFinal.cpp**<br />
+**v3.cpp**<br />
 It covers the density and velocity source addition, density and velocity diffusion, density and velocity advection, and **Helmholtz-Hodge decomposition** sections in Jos Stam paper.
 
-**vFinal_animation.cpp**<br />
-It provides the necessary Excel files as output to generate the animation for the code vFinal.
+**v4.cpp**<br />
+It covers the density and velocity source addition, density and velocity diffusion, density and velocity advection,**Helmholtz-Hodge decomposition** and setting boundary conditions sections in Jos Stam paper.
+
+**v4_animation.cpp**<br />
+It provides the necessary Excel files as output to generate the animation for the code v4.
