@@ -13,7 +13,7 @@
 
 using namespace std;
 
-const int N = 100; // The size of the matrix (excluding boundary)
+const int N = 50; // The size of the matrix (excluding boundary)
 
 const double length = 10;
 
@@ -186,14 +186,15 @@ void density_step(vector<vector<double>> &dens, vector<vector<double>> &dens0, v
 void velocity_step(vector<vector<double>> &u, vector<vector<double>> &v, vector<vector<double>> &u0, vector<vector<double>> &v0, vector<vector<double>> &divergent, vector<vector<double>> &pressure, vector<vector<double>> &x, vector<vector<double>> &y)
 {
     // Six lines below are for initializing the velocity field
-    int xStart = 1;
-    int xEnd = N + 1;
+    int xStart = (N / 2) - 6;
+    int xEnd = (N / 2) + 6;
     int yStart = 1;
     int yEnd = 2;
     double xVeloc = 0;
     double yVeloc = 3;
 
     velocInitialize(xStart, xEnd, yStart, yEnd, u, v, xVeloc, yVeloc);
+
     SWAP(u, u0);
     diffuse(u, u0, visc);
     SWAP(v, v0);
@@ -245,9 +246,10 @@ int main()
 {
     createCoordinates(x, y);
 
-    for (int t = 0; t < 200; t = t + dt)
+    for (int t = 0; t < 100; t = t + dt)
     {
-        saveToFile(u, "dens_t" + to_string(t) + ".csv");
+        saveToFile(dens, "dens_t" + to_string(t) + ".csv");
+        saveToFile(v, "v_t" + to_string(t) + ".csv");
         velocity_step(u, v, u0, v0, divergent, pressure, x, y);
         density_step(dens, dens0, u, v, x, y);
 

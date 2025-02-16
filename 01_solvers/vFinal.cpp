@@ -221,7 +221,7 @@ int main()
         {
             for (int j = 0; j <= N + 1; j++) // Include boundary cells (0 to N+1)
             {
-                cout << u[i][j] << " ";
+                cout << x[i][j] << " ";
             }
             cout << "\n";
         }
