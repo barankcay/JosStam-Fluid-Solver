@@ -14,8 +14,8 @@ max_steps = 300
 
 
 # Set the color range constant
-MIN = -3
-MAX = 3
+MIN = -0.5
+MAX = 2
 
 for t in range(max_steps):
     filename = f'v_t{t}.csv'
